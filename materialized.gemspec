@@ -36,6 +36,11 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activemodel', '> 7.0'
   spec.add_dependency 'activesupport', '> 7.0'
 
+  # Necessary to remove warnings for now
+  spec.add_dependency 'bigdecimal', '~> 3.1'
+  spec.add_dependency 'logger', '~> 1.6'
+  spec.add_dependency 'mutex_m', '~> 0.2'
+
   spec.add_development_dependency 'activerecord', '> 7.0'
   spec.add_development_dependency 'sqlite3', '~> 1.4'
 

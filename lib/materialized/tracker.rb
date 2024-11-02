@@ -16,6 +16,8 @@ module Materialized
                 'materialized model instances must respond to `previous_changes`'
         end
 
+        # TODO: validate that both models are in the same cluster
+
         @__materialized_persister = persister.new(*args, **kwargs)
 
         class_eval do

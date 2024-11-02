@@ -7,9 +7,14 @@ require 'active_record'
 require 'minitest/pride'
 require 'minitest/autorun'
 
+unless ENV['DEBUG']
+  ActiveRecord::Base.logger = nil
+  ActiveRecord::Migration.verbose = false
+end
+
 ActiveRecord::Base.establish_connection(
   adapter: 'sqlite3',
-  database: 'memory'
+  database: ':memory:'
 )
 
 ActiveRecord::Schema.define do
