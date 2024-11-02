@@ -4,8 +4,8 @@ Proof-of-concept to make it extremely easy for Rails applications to implement "
 
 ```ruby
 class RepositoryLayoutMaterializer < Materialized::Builder
-  depends_on Repository, [:title]
-  depends_on User, [:login]
+  depends_on Repository, :title
+  depends_on User, :login
 
   def call
     case

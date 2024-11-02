@@ -2,6 +2,7 @@
 
 require 'active_support'
 require 'json'
+require_relative 'materialized/builder'
 require_relative 'materialized/version'
 require_relative 'materialized/model'
 require_relative 'materialized/tracker'

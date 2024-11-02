@@ -25,6 +25,13 @@ ActiveRecord::Schema.define do
     t.datetime 'updated_at', null: false
   end
 
+  create_table 'comments', force: :cascade do |t|
+    t.text     'body'
+    t.integer  'post_id'
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+  end
+
   create_table 'logs', force: :cascade do |t|
     t.string   'fields'
     t.string   'class_id'
@@ -32,6 +39,12 @@ ActiveRecord::Schema.define do
     t.string   'action'
     t.datetime 'created_at', null: false
     t.datetime 'updated_at', null: false
+  end
+
+  create_table 'post_views', force: :cascade do |t|
+    t.string      'title'
+    t.integer     'comment_count'
+    t.integer     'post_id'
   end
 end
 
@@ -45,6 +58,14 @@ class Post < ApplicationRecord
   materialize_with Materialized::ModelPersister, model: 'Log'
 end
 
+class Comment < ApplicationRecord
+  materialize_with Materialized::ModelPersister, model: 'Log'
+end
+
+class PostView < ApplicationRecord
+  belongs_to :post
+end
+
 class Log < ApplicationRecord
   include Materialized::Model
 end
@@ -55,5 +76,6 @@ class Minitest::Test
 
     Post.delete_all
     Log.delete_all
+    PostView.delete_all
   end
 end

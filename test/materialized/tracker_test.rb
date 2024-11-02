@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-require 'active_model'
 
 class Materialized::TrackerTest < Minitest::Test
   def test_can_persist_creation
