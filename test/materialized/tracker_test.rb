@@ -3,56 +3,39 @@
 require 'test_helper'
 require 'active_model'
 
-# The model we're using to power the tracker
-class MyModel
-  # Implementing the common AR interface
-  include ActiveModel::Model
-  include ActiveModel::Attributes
-  include ActiveModel::Dirty
-  extend ActiveModel::Callbacks
-  define_model_callbacks :save
-
-  # What we're testing
-  include Materialized::Tracker
-  persist_with Materialized::ModelPersister, model: 'PersistenceModel'
-
-  attribute :id, :integer
-  attribute :title, :string
-  attribute :body, :string
-
-  def save
-    run_callbacks :save do
-      # Your create action methods here
-    end
-  end
-end
-
-class PersistenceModel
-  include ActiveModel::Model
-  include ActiveModel::Attributes
-
-  include Materialized::Model
-
-  attribute :id, :integer
-  attribute :type, :string
-  attribute :fields, :string
-  attribute :persisted_at, :datetime
-
-  def self.store
-    @_store ||= []
-  end
-
-  def save
-    self.class.store << self
-  end
-end
-
 class MaterializedTest < Minitest::Test
-  def test_can_persist_changes
-    MyModel.new(title: 'The truth is out there').save
+  def test_can_persist_creation
+    Post.create(title: 'Hello world')
 
-    assert_equal 1, PersistenceModel.store.count
-    persisted = PersistenceModel.store[0]
-    assert_equal ['title'], persisted.fields
+    assert_equal 1, Log.count
+    log = Log.first
+
+    assert_equal 'create', log.action
+    assert_equal [], log.fields
+  end
+
+  def test_can_persist_updates
+    post = Post.create(title: 'Hello world')
+    Log.destroy_all
+
+    post.update(title: 'new title!')
+
+    assert_equal 1, Log.count
+    log = Log.first
+
+    assert_equal 'update', log.action
+    assert_equal %w[title updated_at], log.fields
+  end
+
+  def test_can_persist_destroy
+    post = Post.create(title: 'Hello world')
+    Log.destroy_all
+    post.destroy
+
+    assert_equal 1, Log.count
+    log = Log.first
+
+    assert_equal 'destroy', log.action
+    assert_equal [], log.fields
   end
 end

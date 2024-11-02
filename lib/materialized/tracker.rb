@@ -3,19 +3,26 @@
 module Materialized
   module Tracker
     def self.included(mod)
-      raise ArgumentError, 'Materialized can only be included on model like objects' unless mod.respond_to?(:after_save)
-
       mod.extend(ClassMethods)
-
-      mod.class_eval do
-        after_save :_materialized_track
-      end
     end
 
     # :nodoc:
     module ClassMethods
-      def persist_with(persister, *args, **kwargs)
+      def materialize_with(persister, *args, **kwargs)
+        raise ArgumentError, 'materialized models must respond to `after_save`' unless respond_to?(:after_save)
+
+        unless instance_methods.include?(:previous_changes)
+          raise ArgumentError,
+                'materialized model instances must respond to `previous_changes`'
+        end
+
         @__materialized_persister = persister.new(*args, **kwargs)
+
+        class_eval do
+          after_create -> { _materialized_track(:create) }
+          after_update -> { _materialized_track(:update) }
+          after_destroy -> { _materialized_track(:destroy) }
+        end
       end
 
       def materialized_persister
@@ -23,8 +30,8 @@ module Materialized
       end
     end
 
-    def _materialized_track
-      self.class.materialized_persister.persist(self)
+    def _materialized_track(action)
+      self.class.materialized_persister&.persist(self, action)
     end
   end
 end

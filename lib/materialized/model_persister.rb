@@ -6,11 +6,14 @@ module Materialized
       @persistence_model = model
     end
 
-    def persist(instance)
+    def persist(instance, action)
+      fields = action == :update ? instance.previous_changes.keys : []
+
       persistence_model_class.new(
         id: instance.id,
-        type: instance.class.name,
-        fields: instance.changed
+        action: action,
+        class_name: instance.class.name,
+        fields: fields
       ).save
     end
 
