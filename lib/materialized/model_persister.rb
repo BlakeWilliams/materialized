@@ -7,7 +7,11 @@ module Materialized
     end
 
     def persist(instance)
-      persistence_model_class.new(id: instance.id, type: instance.class.name, fields: instance.changed).save
+      persistence_model_class.new(
+        id: instance.id,
+        type: instance.class.name,
+        fields: instance.changed
+      ).save
     end
 
     private

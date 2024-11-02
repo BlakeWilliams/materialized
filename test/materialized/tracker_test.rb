@@ -31,6 +31,8 @@ class PersistenceModel
   include ActiveModel::Model
   include ActiveModel::Attributes
 
+  include Materialized::Model
+
   attribute :id, :integer
   attribute :type, :string
   attribute :fields, :string
@@ -51,6 +53,6 @@ class MaterializedTest < Minitest::Test
 
     assert_equal 1, PersistenceModel.store.count
     persisted = PersistenceModel.store[0]
-    assert_equal '["title"]', persisted.fields
+    assert_equal ['title'], persisted.fields
   end
 end
