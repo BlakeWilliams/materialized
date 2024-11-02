@@ -3,9 +3,7 @@
 module Materialized
   module Tracker
     def self.included(mod)
-      unless mod.respond_to?(:after_save)
-        raise ArgumentError.new('Materialized can only be included on model like objects')
-      end
+      raise ArgumentError, 'Materialized can only be included on model like objects' unless mod.respond_to?(:after_save)
 
       mod.extend(ClassMethods)
 
@@ -14,6 +12,7 @@ module Materialized
       end
     end
 
+    # :nodoc:
     module ClassMethods
       def persist_with(persister, *args, **kwargs)
         @__materialized_persister = persister.new(*args, **kwargs)
