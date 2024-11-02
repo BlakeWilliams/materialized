@@ -10,7 +10,7 @@ module Materialized
       fields = action == :update ? instance.previous_changes.keys : []
 
       persistence_model_class.new(
-        id: instance.id,
+        class_id: instance.id,
         action: action,
         class_name: instance.class.name,
         fields: fields

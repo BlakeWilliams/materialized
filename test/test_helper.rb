@@ -27,6 +27,7 @@ ActiveRecord::Schema.define do
 
   create_table 'logs', force: :cascade do |t|
     t.string   'fields'
+    t.string   'class_id'
     t.string   'class_name'
     t.string   'action'
     t.datetime 'created_at', null: false

@@ -3,7 +3,7 @@
 require 'test_helper'
 require 'active_model'
 
-class MaterializedTest < Minitest::Test
+class Materialized::TrackerTest < Minitest::Test
   def test_can_persist_creation
     Post.create(title: 'Hello world')
 
