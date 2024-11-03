@@ -2,29 +2,41 @@
 
 module Materialized
   class Builder
-    def self.update_mapping
-      @update_mapping ||= {}
+    # :nodoc:
+    class Dependency
+      attr_reader :model, :attrs, :on_create, :on_destroy
+
+      def initialize(model, attrs: nil, on_create: nil, on_destroy: nil)
+        @model = model
+        @attrs = attrs
+        @on_create = on_create
+        @on_destroy = on_destroy
+      end
     end
 
-    def self.creation_mapping
-      @creation_mapping ||= Set.new
+    def self.model(model, belongs_to:)
+      @model = model
+      @belongs_to = belongs_to
     end
 
-    def self.destruction_mapping
-      @destruction_mapping ||= Set.new
+    def self.model_class
+      if @model.is_a?(String)
+        @model.constantize
+      elsif @model.is_a?(Class)
+        @model
+      elsif @model.is_a?(Symbol)
+        @model.constantize
+      else
+        raise ArgumentError, 'Model must be a class, string, or symbol'
+      end
     end
 
-    def self.depends_on(model, *fields)
-      update_mapping[model] ||= Set.new
-      update_mapping[model].merge(fields)
+    def self.mapping
+      @_mapping ||= {}
     end
 
-    def self.depends_on_creation_of(model)
-      creation_mapping << model
-    end
-
-    def self.depends_on_destruction_of(model)
-      destruction_mapping << model
+    def self.depends_on(model, attrs: nil, on_create: nil, on_destroy: nil)
+      mapping[model] = Dependency.new(model, attrs: attrs, on_create: on_create, on_destroy: on_destroy)
     end
   end
 end

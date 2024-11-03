@@ -5,35 +5,40 @@ require 'test_helper'
 class Materialized::BuilderTest < Minitest::Test
   # see test/test_helper.rb for the PostView model schema
   class PostViewBuilder < Materialized::Builder
-    depends_on Post, :title
-    depends_on_destruction_of Post
+    depends_on Post,
+               attrs: [:title],
+               on_create: :on_post_create,
+               on_destroy: :on_post_destroy
+    depends_on Comment,
+               on_create: :comment_created,
+               on_destroy: :comment_destroyed
 
-    depends_on_creation_of Post
-    depends_on_creation_of Comment
-    depends_on_destruction_of Comment
-
-    def on_post_create(posts)
-      posts.each do |post|
-        PostView.create!(post: post, title: format_title(post.title), comment_count: 0)
-      end
+    def init_model(post)
+      PostView.new(
+        post: post,
+        title: format_title(post.title),
+        comment_count: 0
+      )
     end
 
-    def on_post_destroy(posts)
-      posts.each do |post|
-        PostView.where(post: post).destroy_all
-      end
+    def on_post_create(post)
+      init_model(post).save!
+    end
+
+    def on_post_destroy(post)
+      PostView.where(post: post).destroy_all
     end
 
     def on_post_update(post, changes)
-      post_view = PostView.where(post: post)
+      post_view = PostView.where(post: post).first || init_model(post)
 
-      title = format_title(changes[:title]) if changes.include?(:title)
-      post_view.update(title: title)
+      title = format_title(post.title) if changes.include?('title')
+      post_view.update!(title: title)
     end
 
-    def on_comment_create(_comments)
-      PostView.create!(title: post.title, comment_count: 0)
-    end
+    def comment_created(comment); end
+
+    def comment_destroyed(comment); end
 
     private
 
@@ -46,10 +51,8 @@ class Materialized::BuilderTest < Minitest::Test
 
   def test_post_updated
     post = Post.create!(title: '# Hello, world!')
-    PostViewBuilder.new.on_post_create(Array(post))
-
-    post = Post.update!(title: '# I want to believe')
-    PostViewBuilder.new.on_post_update(post, { title: '# I want to believe' })
+    post.update!(title: '# I want to believe')
+    PostViewBuilder.new.on_post_update(post, ['title'])
 
     assert_equal 1, PostView.count
 
@@ -59,7 +62,7 @@ class Materialized::BuilderTest < Minitest::Test
 
   def test_post_create
     post = Post.create!(title: '# Hello, world!')
-    PostViewBuilder.new.on_post_create(Array(post))
+    PostViewBuilder.new.on_post_create(post)
     assert_equal 1, PostView.count
 
     post_view = PostView.first
@@ -68,11 +71,11 @@ class Materialized::BuilderTest < Minitest::Test
 
   def test_post_destroy
     post = Post.create!(title: '# Hello, world!')
-    PostViewBuilder.new.on_post_create(Array(post))
+    PostViewBuilder.new.on_post_create(post)
     assert_equal 1, PostView.count
 
     post.destroy!
-    PostViewBuilder.new.on_post_destroy(Array(post))
+    PostViewBuilder.new.on_post_destroy(post)
     assert_equal 0, PostView.count
   end
 end
